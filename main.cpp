@@ -12,6 +12,11 @@ int main(int argc, char *argv[])
 
     QDomDocument outdoc("outdoc");
 
+    QDomProcessingInstruction instr = outdoc.createProcessingInstruction("xml", "version='1.0' encoding='UTF-8'");
+    outdoc.appendChild(instr);
+
+    outdoc.removeChild(outdoc.doctype());
+
     QString filenameIN ;
 
     QString filenameOUT;
@@ -24,23 +29,23 @@ int main(int argc, char *argv[])
     }else{
 
         filenameIN = argv[1];
+        filenameOUT = argv[2];
     }
 
-    QFile file(filenameIN);
+    QFile INfile(filenameIN);
 
-    if (!file.open(QFile::ReadOnly | QFile::Text) && !file.exists()){
+    if (!INfile.open(QFile::ReadOnly | QFile::Text) && !INfile.exists()){
             std::cerr << "Error: Cannot read file " << qPrintable(filenameIN)
-                      << ": " << qPrintable(file.errorString())
+                      << ": " << qPrintable(INfile.errorString())
                       << std::endl;
             return 0;
+    }else if (!indoc.setContent(&INfile)){
 
-            if (!indoc.setContent(&file)){
-
-                file.close();
-            }
-
-            file.close();
+        cout << "Error : The input document was not loaded correctly" << endl;
+        return 0;
     }
+
+    INfile.close();
 
     QDomElement workspace = indoc.documentElement();
 
@@ -73,9 +78,28 @@ int main(int argc, char *argv[])
 
     while (!elmt.isNull()){
 
-        toTouchOSC(elmt.toElement());
+        QDomElement outelmt = toTouchOSC(elmt);
+
+        outdoc.appendChild(outdoc.createElement(outelmt.tagName()));
+
+        elmt = elmt.nextSibling();
 
     }
 
+    QFile OUTfile(filenameOUT);
+
+    if(!OUTfile.open(QFile::WriteOnly | QFile::Text)  && !OUTfile.exists()){
+        std::cerr << "Error: Cannot write file " << qPrintable(filenameOUT)
+                  << ": " << qPrintable(OUTfile.errorString())
+                  << std::endl;
+        return 0;
+    }else{
+
+      QTextStream ts(&OUTfile);
+
+      ts << outdoc.toString();
+
+      OUTfile.close();
+    }
     return 0;
 }

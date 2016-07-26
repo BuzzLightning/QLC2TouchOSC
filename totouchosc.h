@@ -1,7 +1,7 @@
 #ifndef TOTOUCHOSC
 #define TOTOUCHOSC
 
-void toTouchOSC(QDomElement workelmt);
+QDomElement toTouchOSC(QDomNode workelmt);
 
 #endif // TOTOUCHOSC
 

@@ -4,8 +4,21 @@
 #include <iostream>
 using namespace std;
 
-void toTouchOSC(QDomElement workelmt){
+QDomElement toTouchOSC(QDomNode paramelmt){
+
+   QDomElement workelmt = paramelmt.toElement();
+
+   QDomElement outelmt;
 
    cout << qPrintable(workelmt.tagName()) << endl;
+
+   outelmt = workelmt;
+
+   if(workelmt.tagName() == "Frame"){
+
+
+   }
+
+   return outelmt;
 
 }
