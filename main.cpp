@@ -1,44 +1,81 @@
-#include <QCoreApplication>
 #include <QFile>
-#include <QXmlStreamWriter>
-//#include <stdio.h>
-#include <QtXml/qdom.h>
-#include <QtXml/QDomDocument>
+#include <stdio.h>
+#include <QtXml>
 #include <iostream>
+#include "totouchosc.h"
 using namespace std;
-
-
 
 int main(int argc, char *argv[])
 {
 
-    QDomDocument doc("mydocument");
-    QFile file("index.xml");
-    if (!file.open(QIODevice::ReadOnly))
-        cout << "Error opening \n";
-    if (!doc.setContent(&file)) {
-        file.close();
-    }
-    file.close();
+    QDomDocument indoc("indoc");
 
-    // print out the element names of all elements that are direct children
-    // of the outermost element.
-    QDomElement docElem = doc.documentElement();
+    QDomDocument outdoc("outdoc");
 
-    QDomNode n = docElem.firstChild();
-    while(!n.isNull()) {
-        QDomElement e = n.toElement(); // try to convert the node to an element.
-        if(!e.isNull()) {
-            cout << qPrintable(e.tagName()) << endl; // the node really is an element.
-        }
-        n = n.nextSibling();
+    QString filenameIN ;
+
+    QString filenameOUT;
+
+    if (argc < 3){
+
+        cout << "Error : you must specify the input filename (QLC) first and then the output filename (TouchOSC)" << endl;
+
+        return 0;
+    }else{
+
+        filenameIN = argv[1];
     }
 
-//    // Here we append a new element to the end of the document
-//    QDomElement elem = doc.createElement("img");
-//    elem.setAttribute("src", "myimage.png");
-//    docElem.appendChild(elem);
+    QFile file(filenameIN);
+
+    if (!file.open(QFile::ReadOnly | QFile::Text) && !file.exists()){
+            std::cerr << "Error: Cannot read file " << qPrintable(filenameIN)
+                      << ": " << qPrintable(file.errorString())
+                      << std::endl;
+            return 0;
+
+            if (!indoc.setContent(&file)){
+
+                file.close();
+            }
+
+            file.close();
+    }
+
+    QDomElement workspace = indoc.documentElement();
+
+    QDomNode virtualConsole;
+
+    if (workspace.tagName() != "Workspace"){
+
+        cout << "Error : The input document is invalid" << endl;
+        return 0;
+    }else{
+
+    virtualConsole = workspace.firstChildElement("VirtualConsole");
+
+    }
+
+    QDomNode mainFrame;
+
+    if (virtualConsole.firstChildElement().tagName() != "Frame" && virtualConsole.firstChildElement().attribute("Caption") != ""){
+
+        cout << "Error : The input document is invalid" << endl;
+        return 0;
+
+    }else{
+
+        mainFrame =  virtualConsole.firstChild();
+
+    }
+
+    QDomNode elmt = mainFrame.firstChild();
+
+    while (!elmt.isNull()){
+
+        toTouchOSC(elmt.toElement());
+
+    }
 
     return 0;
 }
-

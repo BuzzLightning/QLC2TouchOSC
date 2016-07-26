@@ -8,6 +8,10 @@ CONFIG -= app_bundle
 
 TEMPLATE = app
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    totouchosc.cpp
+
+HEADERS += \
+    totouchosc.h
 
 
